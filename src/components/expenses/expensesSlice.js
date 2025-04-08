@@ -1,10 +1,10 @@
-// src/features/expenses/expenseSlice.js
-import { createSlice } from '@reduxjs/toolkit';
-import { addPendingAction } from '../../features/sync/syncSlice';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
 
 const initialState = {
   expenses: [],
-  status: 'idle'
+  status: 'idle',
+  searchTerm: '',
+  filterCategory: '',
 };
 
 export const expenseSlice = createSlice({
@@ -15,12 +15,19 @@ export const expenseSlice = createSlice({
       state.expenses = action.payload;
     },
     addExpense: (state, action) => {
-      state.expenses.push(action.payload);
+      const expense = {
+        ...action.payload,
+        lastUpdated: new Date().toISOString(),
+      };
+      state.expenses.push(expense);
     },
     updateExpense: (state, action) => {
       const index = state.expenses.findIndex(expense => expense.id === action.payload.id);
       if (index !== -1) {
-        state.expenses[index] = action.payload;
+        state.expenses[index] = {
+          ...action.payload,
+          lastUpdated: new Date().toISOString(),
+        };
       }
     },
     deleteExpense: (state, action) => {
@@ -28,8 +35,14 @@ export const expenseSlice = createSlice({
     },
     setStatus: (state, action) => {
       state.status = action.payload;
-    }
-  }
+    },
+    setSearchTerm: (state, action) => {
+      state.searchTerm = action.payload;
+    },
+    setFilterCategory: (state, action) => {
+      state.filterCategory = action.payload;
+    },
+  },
 });
 
 export const {
@@ -37,61 +50,30 @@ export const {
   addExpense,
   updateExpense,
   deleteExpense,
-  setStatus
+  setStatus,
+  setSearchTerm,
+  setFilterCategory,
 } = expenseSlice.actions;
 
-// Thunks that handle sync logic
-export const addExpenseAsync = (expense) => (dispatch, getState) => {
-  const { isOnline } = getState().sync;
-  
-  if (isOnline) {
-    // If online, directly add to expenses
-    dispatch(addExpense(expense));
-    // Save to localStorage/AsyncStorage would happen here
-  } else {
-    // If offline, add to expenses AND add to pending actions queue
-    dispatch(addExpense(expense));
-    dispatch(addPendingAction({
-      type: 'ADD_EXPENSE',
-      payload: expense
-    }));
+// Memoized filtered & searched expenses
+export const selectAllExpenses = createSelector(
+  (state) => state.expenses.expenses,
+  (state) => state.expenses.searchTerm,
+  (state) => state.expenses.filterCategory,
+  (expenses, searchTerm, filterCategory) => {
+    return expenses.filter(expense => {
+      const matchesSearch = expense.title.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = filterCategory ? expense.category === filterCategory : true;
+      return matchesSearch && matchesCategory;
+    });
   }
-};
+);
 
-export const updateExpenseAsync = (expense) => (dispatch, getState) => {
-  const { isOnline } = getState().sync;
-  
-  if (isOnline) {
-    dispatch(updateExpense(expense));
-    // Save to localStorage/AsyncStorage would happen here
-  } else {
-    dispatch(updateExpense(expense));
-    dispatch(addPendingAction({
-      type: 'UPDATE_EXPENSE',
-      payload: expense
-    }));
-  }
-};
-
-export const deleteExpenseAsync = (expenseId) => (dispatch, getState) => {
-  const { isOnline } = getState().sync;
-  
-  if (isOnline) {
-    dispatch(deleteExpense(expenseId));
-    // Save to localStorage/AsyncStorage would happen here
-  } else {
-    dispatch(deleteExpense(expenseId));
-    dispatch(addPendingAction({
-      type: 'DELETE_EXPENSE',
-      payload: expenseId
-    }));
-  }
-};
-
-// Selectors
-export const selectAllExpenses = (state) => state.expenses.expenses;
-export const selectExpenseById = (id) => (state) => 
+export const selectExpenseById = (id) => (state) =>
   state.expenses.expenses.find(expense => expense.id === id);
+
 export const selectExpensesStatus = (state) => state.expenses.status;
+export const selectSearchTerm = (state) => state.expenses.searchTerm;
+export const selectFilterCategory = (state) => state.expenses.filterCategory;
 
 export default expenseSlice.reducer;

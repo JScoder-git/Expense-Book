@@ -1,0 +1,101 @@
+:root {
+  --primary-purple: #8a2be2;
+  --primary-purple-light: #a239ff;
+  --primary-purple-dark: #5e0b9e;
+  --online-color: #00ff8c;
+  --offline-color: #777;
+  --text-light: #f1f1f1;
+}
+
+.network-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.network-label {
+  color: var(--text-light);
+  margin-right: 0.5rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.network-toggle-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
+  min-width: 90px;
+  justify-content: center;
+  margin: 0;
+}
+
+.network-toggle-btn:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.network-toggle-btn:hover:before {
+  transform: translateX(100%);
+}
+
+.network-toggle-btn.online {
+  background: linear-gradient(135deg, var(--online-color) 0%, #2fbd80 100%);
+  box-shadow: 0 3px 10px rgba(66, 211, 146, 0.3);
+}
+
+.network-toggle-btn.online:hover {
+  background: linear-gradient(135deg, #2fbd80 0%, var(--online-color) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(66, 211, 146, 0.4);
+}
+
+.network-toggle-btn.offline {
+  background: linear-gradient(135deg, var(--offline-color) 0%, #555 100%);
+  box-shadow: 0 3px 10px rgba(85, 85, 85, 0.3);
+}
+
+.network-toggle-btn.offline:hover {
+  background: linear-gradient(135deg, #555 0%, var(--offline-color) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(85, 85, 85, 0.4);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot.online {
+  background-color: white;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+}
+
+.status-dot.offline {
+  background-color: #ddd;
+}
+
+@media (max-width: 576px) {
+  .network-toggle-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+}

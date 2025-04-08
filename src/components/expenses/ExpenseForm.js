@@ -1,38 +1,32 @@
-// src/components/expenses/ExpenseForm.js
 import React, { useState, useEffect } from 'react';
 
-const ExpenseForm = ({ expense, onSubmit, onCancel }) => {
-  // Initialize form with empty values or existing expense data
+const ExpenseForm = ({ expense = null, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
+    id: '',
     title: '',
-    amount: '',
     category: '',
-    date: new Date().toISOString().split('T')[0], // Format as YYYY-MM-DD
+    amount: '',
+    date: new Date().toISOString().substr(0, 10)
   });
-  const [error, setError] = useState('');
-  
-  // Categories for dropdown
-  const categories = [
-    'Food', 
-    'Transportation', 
-    'Housing', 
-    'Utilities', 
-    'Entertainment', 
-    'Healthcare', 
-    'Education', 
-    'Shopping', 
-    'Personal', 
-    'Other'
-  ];
 
-  // If editing, populate form with expense data
+  // If expense is provided, populate form for editing
   useEffect(() => {
     if (expense) {
       setFormData({
-        title: expense.title,
-        amount: expense.amount,
-        category: expense.category,
-        date: new Date(expense.date).toISOString().split('T')[0],
+        id: expense.id,
+        title: expense.title || '',
+        category: expense.category || '',
+        amount: expense.amount ? expense.amount.toString() : '',
+        date: expense.date ? new Date(expense.date).toISOString().substr(0, 10) : new Date().toISOString().substr(0, 10)
+      });
+    } else {
+      // Reset form for new expense
+      setFormData({
+        id: '',
+        title: '',
+        category: '',
+        amount: '',
+        date: new Date().toISOString().substr(0, 10)
       });
     }
   }, [expense]);
@@ -44,106 +38,102 @@ const ExpenseForm = ({ expense, onSubmit, onCancel }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setError('');
-
-    // Validate form
-    if (!formData.title.trim()) {
-      setError('Title is required');
-      return;
-    }
-
-    if (!formData.amount || isNaN(formData.amount) || Number(formData.amount) <= 0) {
-      setError('Amount must be a positive number');
-      return;
-    }
-
-    if (!formData.category) {
-      setError('Please select a category');
-      return;
-    }
-
-    if (!formData.date) {
-      setError('Date is required');
-      return;
-    }
-
-    // Submit valid form
+    
     onSubmit({
       ...formData,
-      id: expense?.id, // Keep the original ID if editing
-      amount: Number(formData.amount), // Convert to number
+      amount: parseFloat(formData.amount),
+      id: formData.id || undefined // Let parent generate ID if new expense
     });
+    
+    // Reset form if not editing
+    if (!expense) {
+      setFormData({
+        id: '',
+        title: '',
+        category: '',
+        amount: '',
+        date: new Date().toISOString().substr(0, 10)
+      });
+    }
   };
 
   return (
-    <div className="expense-form">
-      <h3>{expense ? 'Edit Expense' : 'Add New Expense'}</h3>
-      
-      {error && <div className="error-message">{error}</div>}
-      
-      <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="expense-form">
+      <div className="form-row">
         <div className="form-group">
-          <label htmlFor="title">Title</label>
+          <label className="form-label" htmlFor="title">Title</label>
           <input
             type="text"
             id="title"
             name="title"
             value={formData.title}
             onChange={handleChange}
-            placeholder="e.g. Grocery shopping"
+            className="form-input"
+            required
           />
         </div>
         
         <div className="form-group">
-          <label htmlFor="amount">Amount</label>
-          <input
-            type="number"
-            id="amount"
-            name="amount"
-            value={formData.amount}
-            onChange={handleChange}
-            placeholder="0.00"
-            step="0.01"
-            min="0"
-          />
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="category">Category</label>
+          <label className="form-label" htmlFor="category">Category</label>
           <select
             id="category"
             name="category"
             value={formData.category}
             onChange={handleChange}
+            className="form-input"
+            required
           >
             <option value="">Select category</option>
-            {categories.map(category => (
-              <option key={category} value={category}>{category}</option>
-            ))}
+            <option value="Food">Food</option>
+            <option value="Transportation">Transportation</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Housing">Housing</option>
+            <option value="Utilities">Utilities</option>
+            <option value="Other">Other</option>
           </select>
+        </div>
+      </div>
+      
+      <div className="form-row">
+        <div className="form-group">
+          <label className="form-label" htmlFor="amount">Amount</label>
+          <input
+            type="number"
+            step="0.01"
+            id="amount"
+            name="amount"
+            value={formData.amount}
+            onChange={handleChange}
+            className="form-input"
+            required
+          />
         </div>
         
         <div className="form-group">
-          <label htmlFor="date">Date</label>
+          <label className="form-label" htmlFor="date">Date</label>
           <input
             type="date"
             id="date"
             name="date"
             value={formData.date}
             onChange={handleChange}
+            className="form-input"
+            required
           />
         </div>
-        
-        <div className="form-actions">
-          <button type="button" className="btn-secondary" onClick={onCancel}>
+      </div>
+      
+      <div className="form-buttons">
+        <button type="submit" className="btn btn-primary">
+          {expense ? 'Update Expense' : 'Add Expense'}
+        </button>
+        {expense && (
+          <button type="button" className="btn btn-secondary" onClick={onCancel}>
             Cancel
           </button>
-          <button type="submit" className="btn-primary">
-            {expense ? 'Update' : 'Add'} Expense
-          </button>
-        </div>
-      </form>
-    </div>
+        )}
+      </div>
+    </form>
   );
 };
 

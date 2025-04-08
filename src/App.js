@@ -1,27 +1,19 @@
-// src/App.js
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { login } from './features/auth/authSlice';
-
-// Components
 import Login from './components/auth/Login';
 import Signup from './components/auth/Signup';
 import Dashboard from './components/dashboard/Dashboard';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import SessionMonitor from './components/auth/SessionMonitor';
-
-// Services
 import { authService } from './services/authService';
-
-// CSS
 import './App.css';
 
 function App() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // Check if there's an existing valid session on app load
     const sessionCheck = authService.checkSession();
     
     if (sessionCheck.isValid) {

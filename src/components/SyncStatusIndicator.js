@@ -28,12 +28,15 @@ const SyncStatusIndicator = () => {
     statusColor = 'text-green-500';
   }
   
+  const colorwhite = {
+    color: 'white',
+  }
   return (
     <div className={`flex items-center ${statusColor} font-medium`}>
       {syncStatus === 'syncing' && (
         <div className="mr-2 w-4 h-4 border-2 border-t-transparent rounded-full animate-spin"></div>
       )}
-      <span>{statusMessage}</span>
+      <span style={colorwhite}>{statusMessage}</span>
     </div>
   );
 };

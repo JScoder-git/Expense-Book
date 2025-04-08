@@ -1,4 +1,3 @@
-// src/features/sync/syncSlice.js
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
@@ -14,7 +13,6 @@ export const syncSlice = createSlice({
   reducers: {
     setOnlineStatus: (state, action) => {
       state.isOnline = action.payload;
-      // When going online, automatically start sync process
       if (action.payload && state.pendingActions.length > 0) {
         state.syncStatus = 'syncing';
       } else if (action.payload) {
@@ -22,9 +20,8 @@ export const syncSlice = createSlice({
       }
     },
     addPendingAction: (state, action) => {
-      // Only add to pending actions if offline
       if (!state.isOnline) {
-        state.pendingActions.push(action.payload);
+        state.pendingActions.push({ ...action.payload, addedAt: Date.now() });
       }
     },
     setSyncStatus: (state, action) => {
@@ -37,7 +34,15 @@ export const syncSlice = createSlice({
     },
     syncError: (state) => {
       state.syncStatus = 'error';
-    }
+    },
+    removePendingAction: (state, action) => {
+      state.pendingActions = state.pendingActions.filter(
+        (a) => a.id !== action.payload
+      );
+    },
+    setPendingActions: (state, action) => {
+      state.pendingActions = action.payload;
+    },
   }
 });
 
@@ -46,19 +51,14 @@ export const {
   addPendingAction,
   setSyncStatus,
   clearPendingActions,
-  syncError
+  syncError,
+  removePendingAction,
+  setPendingActions
 } = syncSlice.actions;
 
-// Select all pending actions
 export const selectPendingActions = (state) => state.sync.pendingActions;
-
-// Select online status
 export const selectOnlineStatus = (state) => state.sync.isOnline;
-
-// Select sync status
 export const selectSyncStatus = (state) => state.sync.syncStatus;
-
-// Select last sync timestamp
 export const selectLastSyncTimestamp = (state) => state.sync.lastSyncTimestamp;
 
 export default syncSlice.reducer;

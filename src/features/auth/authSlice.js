@@ -1,4 +1,3 @@
-
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
@@ -33,7 +32,6 @@ export const authSlice = createSlice({
 
 export const { login, logout, setSessionExpired } = authSlice.actions;
 
-// Selectors
 export const selectUser = (state) => state.auth.user;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 export const selectSessionExpiry = (state) => state.auth.sessionExpiry;

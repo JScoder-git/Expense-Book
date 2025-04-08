@@ -4,6 +4,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { login } from '../../features/auth/authSlice';
 import { authService } from '../../services/authService';
+import '../../Styles/login.css'
 
 const Login = () => {
   const [formData, setFormData] = useState({

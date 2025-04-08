@@ -1,0 +1,206 @@
+.expenses-container {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+/* Custom scrollbar for the table container */
+.overflow-x-auto {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-purple) rgba(30, 30, 45, 0.4);
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  height: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: rgba(30, 30, 45, 0.4);
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: var(--primary-purple);
+  border-radius: 4px;
+}
+
+/* Table styling */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: rgba(25, 25, 35, 0.7);
+  color: var(--text-primary);
+  border: 1px solid rgba(138, 43, 226, 0.2);
+  overflow: hidden;
+}
+
+thead {
+  background: rgba(30, 30, 50, 0.8);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+th {
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 14px 16px;
+  text-align: left;
+  color: var(--primary-purple-light);
+  border-bottom: 2px solid rgba(138, 43, 226, 0.3);
+}
+
+tbody tr {
+  border-bottom: 1px solid rgba(138, 43, 226, 0.1);
+  transition: all 0.2s ease;
+}
+
+tbody tr:last-child {
+  border-bottom: none;
+}
+
+tbody tr:hover {
+  background: rgba(40, 40, 60, 0.6);
+  transform: translateX(5px);
+}
+
+td {
+  padding: 12px 16px;
+  vertical-align: middle;
+}
+
+/* Style for monetary values */
+.amount-cell {
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 600;
+  color: #42d392;
+}
+
+.negative-amount {
+  color: #f56c6c;
+}
+
+/* Action buttons */
+.actions-cell {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn-edit, .btn-delete {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-edit {
+  background: linear-gradient(135deg, #4e7dff 0%, #3a66d4 100%);
+  color: white;
+}
+
+.btn-edit:hover {
+  background: linear-gradient(135deg, #5a89ff 0%, #4672e0 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(78, 125, 255, 0.4);
+}
+
+.btn-delete {
+  background: linear-gradient(135deg, #ff4d4d 0%, #d63031 100%);
+  color: white;
+}
+
+.btn-delete:hover {
+  background: linear-gradient(135deg, #ff5e5e 0%, #e74c3c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 77, 77, 0.4);
+}
+
+/* Empty state styling */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: rgba(25, 25, 35, 0.5);
+  border-radius: 10px;
+  border: 1px dashed rgba(138, 43, 226, 0.3);
+}
+
+.empty-state-text {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 16px;
+}
+
+/* Category badges */
+.category-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(138, 43, 226, 0.2);
+  color: var(--primary-purple-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Date styling */
+.date-cell {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  table {
+    display: block;
+  }
+  
+  th, td {
+    padding: 10px 12px;
+  }
+  
+  .category-badge {
+    font-size: 0.65rem;
+    padding: 3px 6px;
+  }
+  
+  .btn-edit, .btn-delete {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+}
+
+/* Animation for new items */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+tr {
+  animation: fadeIn 0.3s forwards;
+}

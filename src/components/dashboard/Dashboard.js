@@ -1,176 +1,160 @@
-// src/components/expenses/ExpenseForm.js
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addExpense, updateExpense } from '../expenses/expensesSlice';
-import { selectOnlineStatus, addPendingAction } from '../../features/sync/syncSlice';
-import { v4 as uuidv4 } from 'uuid'; // Ensure you have uuid installed
+import { useNavigate } from 'react-router-dom';
+import {
+  selectAllExpenses,
+  setExpenses,
+  addExpense,
+  updateExpense,
+  deleteExpense
+} from '../../components/expenses/expensesSlice';
+import {
+  selectOnlineStatus,
+  selectSyncStatus,
+  selectPendingActions,
+} from '../../features/sync/syncSlice';
+import { selectUser, logout } from '../../features/auth/authSlice';
+import { authService } from '../../services/authService';
+import ExpenseList from '../expenses/ExpenseList';
+import ExpenseForm from '../expenses/ExpenseForm';
+import NetworkToggle from '../NetworkToggle';
+import SyncStatusIndicator from '../SyncStatusIndicator';
+import { loadExpenses, loadSyncState } from '../../services/storageService';
+import '../../Styles/dashboard.css';
 
-const ExpenseForm = ({ expense = null, onCancel = null }) => {
+const Dashboard = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const user = useSelector(selectUser);
+  const expenses = useSelector(selectAllExpenses);
   const isOnline = useSelector(selectOnlineStatus);
-  const isEditing = !!expense;
-  
-  const [formData, setFormData] = useState({
-    description: expense?.description || '',
-    amount: expense?.amount || '',
-    date: expense?.date || new Date().toISOString().substr(0, 10),
-    category: expense?.category || 'groceries'
-  });
-  
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: name === 'amount' ? parseFloat(value) || '' : value
+  const syncStatus = useSelector(selectSyncStatus);
+  const pendingActions = useSelector(selectPendingActions);
+  const [editingExpense, setEditingExpense] = useState(null);
+
+  // Load expenses from localStorage on component mount
+  useEffect(() => {
+    const savedExpenses = loadExpenses();
+    if (savedExpenses) {
+      dispatch(setExpenses(savedExpenses));
+    }
+
+    const savedSyncState = loadSyncState();
+    if (savedSyncState) {
+      // Restore pending actions if needed
+    }
+  }, [dispatch]);
+
+  // Sync updated expenses to localStorage
+  useEffect(() => {
+    localStorage.setItem('expenses', JSON.stringify(expenses));
+  }, [expenses]);
+
+  const handleLogout = () => {
+    authService.logoutUser();
+    dispatch(logout());
+    navigate('/login');
+  };
+
+  const handleAddExpense = (expense) => {
+    if (editingExpense) {
+      // Update existing expense
+      dispatch(updateExpense(expense));
+      setEditingExpense(null);
+    } else {
+      // Add new expense
+      const newExpense = {
+        ...expense,
+        id: Date.now().toString(),
+      };
+      dispatch(addExpense(newExpense));
+    }
+  };
+
+  const handleEditExpense = (expense) => {
+    setEditingExpense(expense);
+    // Scroll to the form
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
     });
   };
-  
-  // Define the handleSubmit function directly in the component
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Validate form fields
-    if (!formData.description || !formData.amount || !formData.date) {
-      // You can add state for error messages if desired
-      alert('Please fill all required fields');
-      return;
-    }
 
-    // Create expense object
-    const expenseData = {
-      id: expense?.id || uuidv4(),
-      ...formData,
-      amount: parseFloat(formData.amount),
-      timestamp: new Date().toISOString()
-    };
-    
-    if (isEditing) {
-      // Dispatch update action
-      dispatch(updateExpense(expenseData));
-      
-      // If offline, add to pending actions
-      if (!isOnline) {
-        dispatch(addPendingAction({
-          type: 'UPDATE_EXPENSE',
-          payload: expenseData
-        }));
-      }
-    } else {
-      // Dispatch add action
-      dispatch(addExpense(expenseData));
-      
-      // If offline, add to pending actions
-      if (!isOnline) {
-        dispatch(addPendingAction({
-          type: 'ADD_EXPENSE',
-          payload: expenseData
-        }));
-      }
-    }
-    
-    // Reset form if not editing
-    if (!isEditing) {
-      setFormData({
-        description: '',
-        amount: '',
-        date: new Date().toISOString().substr(0, 10),
-        category: 'groceries'
-      });
-    } else if (onCancel) {
-      // If editing, call onCancel if provided (to close edit form)
-      onCancel();
+  const handleDeleteExpense = (id) => {
+    if (window.confirm('Are you sure you want to delete this expense?')) {
+      dispatch(deleteExpense(id));
     }
   };
-  
+
+  const handleCancelEdit = () => {
+    setEditingExpense(null);
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-      <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">
-          Description
-        </label>
-        <input
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          id="description"
-          type="text"
-          placeholder="Expense description"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      
-      <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="amount">
-          Amount
-        </label>
-        <input
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          id="amount"
-          type="number"
-          step="0.01"
-          placeholder="0.00"
-          name="amount"
-          value={formData.amount}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      
-      <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="date">
-          Date
-        </label>
-        <input
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          id="date"
-          type="date"
-          name="date"
-          value={formData.date}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      
-      <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="category">
-          Category
-        </label>
-        <select
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          id="category"
-          name="category"
-          value={formData.category}
-          onChange={handleChange}
-        >
-          <option value="groceries">Groceries</option>
-          <option value="utilities">Utilities</option>
-          <option value="rent">Rent</option>
-          <option value="entertainment">Entertainment</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-      
-      <div className="flex items-center justify-between">
-        <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          type="submit"
-        >
-          {isEditing ? 'Update Expense' : 'Add Expense'}
-        </button>
-        
-        {isEditing && onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          >
-            Cancel
-          </button>
+    <div className="dashboard-container">
+      <div className="dashboard-content">
+        <div className="dashboard-header">
+          <h1 className="dashboard-title">Expense Manager</h1>
+          <div className="controls-container">
+            <NetworkToggle />
+            <SyncStatusIndicator />
+            <div className="user-profile">
+              <span className="user-name">{user?.name || 'User'}</span>
+              <button onClick={handleLogout} className="logout-btn">
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {!isOnline && pendingActions.length > 0 && (
+          <div className="status-notification notification-warning">
+            <p>
+              You're currently offline. {pendingActions.length} changes will sync when you reconnect.
+            </p>
+          </div>
         )}
+
+        {syncStatus === 'syncing' && (
+          <div className="status-notification notification-syncing">
+            <p>Syncing your changes...</p>
+          </div>
+        )}
+
+        {syncStatus === 'completed' && (
+          <div className="status-notification notification-success">
+            <p>All changes synced successfully!</p>
+          </div>
+        )}
+
+        {syncStatus === 'error' && (
+          <div className="status-notification notification-error">
+            <p>Sync failed. Please try again later.</p>
+          </div>
+        )}
+
+        <div className="section-container">
+          <h2 className="section-title">
+            {editingExpense ? 'Edit Expense' : 'Add New Expense'}
+          </h2>
+          <ExpenseForm
+            expense={editingExpense}
+            onSubmit={handleAddExpense}
+            onCancel={handleCancelEdit}
+          />
+        </div>
+
+        <div className="section-container">
+          <h2 className="section-title">Your Expenses</h2>
+          <ExpenseList 
+            expenses={expenses} 
+            onEdit={handleEditExpense}
+            onDelete={handleDeleteExpense}
+          />
+        </div>
       </div>
-    </form>
+    </div>
   );
 };
 
-export default ExpenseForm;
+export default Dashboard;
